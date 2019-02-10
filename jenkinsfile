@@ -1,0 +1,55 @@
+def CONTAINER_NAME="devops-container"
+def CONTAINER_NAME_TAG="babu479/devops-test"
+def CONTAINER_TAG="latest"
+def DOCKER_HUB_USER="babu479"
+def HTTP_PORT="8080"
+
+node('') {
+stage ('Initialize') {
+        def mavenHome  = tool 'maven'
+        env.PATH = "${mavenHome}/bin:${env.PATH}"
+}
+stage ('Clone') {
+git branch: 'master',
+credentialsId: 'a50ea8b8-f277-4ee1-81d4-cf477de0a88d',
+url: 'https://gitlab.com/fluidjeel/devops.git'
+}
+stage ('Build') {
+sh "mvn clean install"
+}
+stage ("Image Prune") {
+    imagePrune(CONTAINER_NAME)
+}
+stage('Image Build'){
+        imageBuild(CONTAINER_NAME, CONTAINER_TAG)
+    }
+    stage('Push to Docker Registry'){
+        withCredentials([usernamePassword(credentialsId: 'DockerHubAccount', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+            pushToImage(CONTAINER_NAME, CONTAINER_TAG, USERNAME, PASSWORD)
+        }
+    }
+    stage ('Deploy Dev') {
+        echo 'Building application'
+        openshiftBuild(namespace: 'devops-demo', bldCfg: 'devops-pipeline', showBuildLogs: 'true')
+}
+}
+ def imagePrune(containerName){
+    try {
+        
+        sh "docker image prune -f"
+        sh "docker stop $containerName"
+        sh "whoami"
+    } catch(error){}
+}
+def imageBuild(containerName, tag){
+    sh "cp $WORKSPACE/target/*.war $WORKSPACE"
+	sh "docker build -t $containerName:$tag  -t $containerName --pull --no-cache ."
+    echo "Image build complete"
+}
+
+def pushToImage(containerName, tag, dockerUser, dockerPassword){
+    sh "docker login -u $dockerUser -p $dockerPassword"
+    sh "docker tag $containerName:$tag $dockerUser/$containerName:$tag"
+    sh "docker push $dockerUser/$containerName:$tag"
+    echo "Image push complete"
+	}
