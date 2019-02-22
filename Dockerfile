@@ -1,4 +1,4 @@
-FROM openjdk:8-jdk-alpine
-ADD target/SpringBootAdmin-*.jar springbootadmin.jar
-EXPOSE 8090
-ENTRYPOINT ["java", "-jar" , "springbootadmin.jar"]
+FROM babu479/apache-tomcat:7.0
+ADD J7.war /root/apache-tomcat-7.0.42-v2/webapps/
+CMD "sh","-c","/root/apache-tomcat-7.0.42-v2/bin/start.sh"
+EXPOSE 8080
