@@ -6,8 +6,9 @@ stage ('Initialize') {
 stage ('Clone') {
 git branch: 'master',
 credentialsId: '817c2970-ffcf-431a-b2c5-66dec3897281',
-url: 'https://gitlab.com/fluidjeel/devops.git'
+url: 'https://github.com/babu479/Batch-example.git'
 }
 stage ('Build') {
 sh "mvn clean install"
+}
 }
