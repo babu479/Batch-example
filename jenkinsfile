@@ -12,6 +12,6 @@ stage ('Build') {
 sh "mvn clean install"
 }
 stage('Post Build Action'){
-build job: SampleProject
+build job: 'SampleProject'
 }
 }
